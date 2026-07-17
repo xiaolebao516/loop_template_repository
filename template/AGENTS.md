@@ -8,6 +8,7 @@
 - Current execution state: `.agent/STATE.md`
 - Completed task log: `.agent/LOG.md`
 - Model recommendation policy: `.agent/MODEL_POLICY.md`
+- Standard state-machine protocol: `.agent/STATE_MACHINE.md`
 - Workflow skills: `.agents/skills/`
 
 ## Command Entry Points
@@ -75,10 +76,14 @@ Load `.agents/skills/workflow-lite/SKILL.md` only for Lite and `.agents/skills/w
 
 ## Operating Context
 
-1. Read `.agent/LOOP.md` for the current Goal, Boundary / Scope, and Success Criteria.
-2. Load only the selected Workflow Skill.
-3. Read and maintain `.agent/STATE.md` when the selected workflow requires it.
-4. Read `.agent/MODEL_POLICY.md` at task start and when its recommendation checkpoints apply. It recommends capability and reasoning effort only; it never switches a model automatically.
-5. Use `.agent/LOG.md` only for completed-task records as defined there.
+After selecting a workflow, load only the files required by that workflow.
+
+- **Lite:** Read `.agent/LOOP.md` only when the task belongs to that Loop, then load the Lite Skill. Lite does not normally read `.agent/STATE_MACHINE.md` or maintain `.agent/STATE.md`; an independent Lite task has no state-machine context cost.
+- **Standard:** Read in this order: `.agent/LOOP.md` → `.agent/STATE_MACHINE.md` → `.agent/STATE.md` → Standard Skill. The state-machine protocol defines Standard stages, legal transitions, recovery, and State update requirements; the Skill executes the current stage.
+- **Lite upgrade:** Load the state-machine protocol and initialize the relevant Standard State only after the user approves the upgrade.
+
+Read `.agent/MODEL_POLICY.md` at its defined recommendation checkpoints. It recommends capability and reasoning effort only; it never switches a model automatically.
+
+Use `.agent/LOG.md` only for completed-task records as defined there.
 
 Do not store current task progress or extensive project knowledge in this file. Route durable knowledge to the appropriate project documentation, script, test, Skill, or engineering constraint.
