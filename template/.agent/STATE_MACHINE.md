@@ -8,6 +8,18 @@ This declarative protocol applies only after Standard has been selected. It defi
 
 `PERSIST` and `DELIVER` are atomic actions, not Stages. A logical atomic action must finish all of its listed work before its resulting Stage is recorded.
 
+## Inactive Bootstrap Lifecycle
+
+`inactive` is repository lifecycle metadata, not a Standard Stage. The only inactive default is `Workflow: none`, `Stage: none`, and `Status: inactive`; `Stage: none` is valid only with those two companion values. It represents a framework with no active Standard Loop and no recoverable Standard draft, and it must not contain a fabricated Goal, Success Criterion, task, plan, completion record, or deployment history.
+
+An independent Lite task leaves this lifecycle state untouched and does not read this protocol. Starting Standard from inactive creates a new instance; it is not an `inactive -> alignment` Stage transition:
+
+- When alignment or planning is still needed, initialize STATE with `Workflow: standard` and `Stage: alignment`, leave LOOP inactive, and keep any proposed contract and approval information only in STATE until PERSIST.
+- When the user has already supplied and approved the complete Goal, Boundary / Scope, numbered Success Criteria, and implementation plan, run PERSIST directly and then enter `execution`; no transient alignment record is required.
+- If the user cancels before PERSIST and no recoverable draft remains, clear the temporary Approval Context and Proposed Contract Draft, restore STATE to inactive, leave LOOP inactive, and do not update LOG.
+
+Framework installation, migration, failed deployment, and superseded deployment never create a Loop instance or enter LOOP, STATE, or LOG.
+
 ## Stage Set and Global Rules
 
 The only Standard Stages are `alignment`, `research-gap`, `planning`, `awaiting-approval`, `execution`, `verification`, `learning`, `reporting`, `completed`, and `blocked`.
@@ -22,7 +34,9 @@ The only Standard Stages are `alignment`, `research-gap`, `planning`, `awaiting-
 
 ```mermaid
 flowchart TD
-    S([New Standard task]) --> A[alignment]
+    I([Inactive repository lifecycle]) --> N([New Standard instance initialization])
+    N -->|alignment or planning needed| A[alignment]
+    N -->|complete package already approved + PERSIST| E[execution]
     A -->|research gap| R[research-gap]
     A -->|aligned| P[planning]
     A -->|complete draft awaits decision| W[awaiting-approval]
@@ -50,15 +64,15 @@ flowchart TD
     C --> T([Terminal])
 ```
 
-`blocked` may resume only at its recorded nonterminal Resume Stage. A new Loop is a fresh instance: after the old one is completed and logged, initialize the new one at `alignment` or, for a complete already approved package, through PERSIST at `execution`.
+`blocked` may resume only at its recorded nonterminal Resume Stage. A new Loop is a fresh instance: after the old one is completed and logged, initialize the new instance from inactive at `alignment` or, for a complete already approved package, through PERSIST at `execution`.
 
 ## Initialization and PERSIST
 
 ### New Standard Work
 
-Every new Standard task enters `alignment` semantically. Before approval, State may hold confirmed facts, evidence, unanswered questions, a clearly marked Draft Plan, Approval Context, and a Proposed Contract Draft. A draft is not the current Loop contract and cannot authorize execution.
+From inactive, a Standard task that needs alignment or planning initializes STATE at `alignment` while LOOP remains inactive. Before approval, State may hold confirmed facts, evidence, unanswered questions, a clearly marked Draft Plan, Approval Context, and a Proposed Contract Draft. A draft is not the current Loop contract and cannot authorize execution.
 
-If the user has already explicitly approved the complete Goal, Boundary / Scope, numbered Success Criteria, and implementation plan, validate that coverage during alignment, then perform PERSIST without persisting unnecessary intermediate Stages.
+If the user has already explicitly approved the complete Goal, Boundary / Scope, numbered Success Criteria, and implementation plan, validate that coverage and perform PERSIST directly without writing a transient alignment Stage.
 
 ### PERSIST Atomic Action
 
@@ -66,7 +80,7 @@ Use PERSIST only after the approval required for the work is recorded.
 
 For a new Loop or an approved material contract change with full contract approval:
 
-1. Write the approved Goal, Boundary / Scope, and numbered Success Criteria to `LOOP.md`.
+1. Replace inactive LOOP content, or update an approved materially changed active contract, with the approved Goal, Boundary / Scope, and numbered Success Criteria.
 2. Initialize or update STATE with the approved milestone, task, approved plan, concise approval evidence in Current Judgment, and steps.
 3. Create or update Verification Status by `SC-*` identifier only, with `pending` unless evidence supports another status.
 4. Clear obsolete Draft Plan, Proposed Contract Draft, and Approval Context.
@@ -172,11 +186,11 @@ Stay in this Stage only for evidence additions, answers, non-semantic wording cl
 
 - **Purpose:** Preserve the final delivered record for this Loop instance.
 - **Entry Conditions:** DELIVER has completed; all required SC are passed or have an explicit accepted exception; any required report is complete; LOG is updated.
-- **Allowed Actions:** Read-only review or an administrative new-Loop initialization.
+- **Allowed Actions:** Read-only review or administrative preparation for a fresh new-Loop initialization.
 - **Required State Fields:** Stage, Status, concise Progress containing delivery summary and LOG reference, final Verification Status, Current Judgment containing limitations and accepted-exception evidence, Next Actions `none`, and Blockers `none`.
 - **Exit Conditions:** None.
 - **Allowed Next Stages:** None.
-- **User Approval Requirements:** A new Loop follows normal contract approval rules.
+- **User Approval Requirements:** A new Loop follows normal contract approval rules. Its initialization is a new instance, not a transition from `completed`.
 - **Recovery Behavior:** Do not repeat completed work or verification.
 
 ### blocked
@@ -222,9 +236,10 @@ On a Standard re-entry:
 2. Read `LOOP.md`.
 3. Read this protocol.
 4. Read `STATE.md`.
-5. Validate the current Stage, its required fields, SC references, required approval evidence, blocked context, iteration control, and completed conditions against the protocol and LOOP.
-6. Continue from the first unfinished exit condition of the current Stage.
-7. Do not repeat completed verified work.
+5. If STATE is inactive, validate the inactive bootstrap conditions instead of Stage fields. Do not recover or invent a Standard task; start a new instance only when a new Standard task is selected.
+6. Otherwise validate the current Stage, its required fields, SC references, required approval evidence, blocked context, iteration control, and completed conditions against the protocol and LOOP.
+7. Continue from the first unfinished exit condition of the current Stage.
+8. Do not repeat completed verified work.
 
 If State is incomplete or conflicts with LOOP, stop and explain the discrepancy to the user. Do not infer missing approval, contract content, evidence, or a Resume Stage.
 

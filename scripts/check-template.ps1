@@ -9,7 +9,7 @@ $ErrorActionPreference = 'Stop'
 if ([string]::IsNullOrWhiteSpace($Root)) {
     $Root = Split-Path -Parent $PSScriptRoot
 }
-$checkCount = 7
+$checkCount = 8
 $findings = New-Object System.Collections.ArrayList
 
 function Add-Finding {
@@ -95,6 +95,60 @@ function Test-LiteDefaultDependency {
                 [void]$problems.Add($RelativePath + ':' + $lineNumber + ': default dependency on ' + $reference)
             }
         }
+    }
+
+    return @($problems)
+}
+
+function Test-BootstrapState {
+    param(
+        [Parameter(Mandatory = $true)][string]$LoopPath,
+        [Parameter(Mandatory = $true)][string]$StatePath,
+        [Parameter(Mandatory = $true)][string]$StateMachinePath
+    )
+
+    $problems = New-Object System.Collections.ArrayList
+    if (-not (Test-Path -LiteralPath $LoopPath -PathType Leaf) -or -not (Test-Path -LiteralPath $StatePath -PathType Leaf) -or -not (Test-Path -LiteralPath $StateMachinePath -PathType Leaf)) {
+        return @($problems)
+    }
+
+    $loopText = Get-FileText -Path $LoopPath
+    $stateText = Get-FileText -Path $StatePath
+    $stateMachineText = Get-FileText -Path $StateMachinePath
+    foreach ($entry in @(
+            @{ Heading = 'Status'; Value = 'inactive' },
+            @{ Heading = 'Goal'; Value = 'none' },
+            @{ Heading = 'Boundary / Scope'; Value = 'none' },
+            @{ Heading = 'Success Criteria'; Value = 'none' }
+        )) {
+        $pattern = '(?m)^## ' + [regex]::Escape($entry.Heading) + '\r?\n\r?\n`' + $entry.Value + '`\s*$'
+        if (-not [regex]::IsMatch($loopText, $pattern)) {
+            [void]$problems.Add('template/.agent/LOOP.md: inactive ' + $entry.Heading + ' is missing or invalid')
+        }
+    }
+
+    foreach ($entry in @(
+            @{ Heading = 'Workflow'; Value = 'none' },
+            @{ Heading = 'Stage'; Value = 'none' },
+            @{ Heading = 'Status'; Value = 'inactive' },
+            @{ Heading = 'Current Task'; Value = 'none' },
+            @{ Heading = 'Next Actions'; Value = 'none' },
+            @{ Heading = 'Verification Status'; Value = 'none' }
+        )) {
+        $pattern = '(?m)^## ' + [regex]::Escape($entry.Heading) + '\r?\n\r?\n`' + $entry.Value + '`\s*$'
+        if (-not [regex]::IsMatch($stateText, $pattern)) {
+            [void]$problems.Add('template/.agent/STATE.md: inactive ' + $entry.Heading + ' is missing or invalid')
+        }
+    }
+
+    if (-not $stateMachineText.Contains('`inactive` is repository lifecycle metadata, not a Standard Stage.')) {
+        [void]$problems.Add('template/.agent/STATE_MACHINE.md: inactive is not declared outside the Standard Stage set')
+    }
+    if ([regex]::IsMatch($loopText, '(?m)^.*SC-[0-9]+.*$') -or [regex]::IsMatch($stateText, '(?m)^.*SC-[0-9]+.*$')) {
+        [void]$problems.Add('template/.agent: inactive bootstrap contains fabricated Success Criterion rows')
+    }
+    if ([regex]::IsMatch($stateText, '(?m)^## (Plan Status|Approval Context|Proposed Contract Draft|Iteration Control|Blocked Context)\s*$')) {
+        [void]$problems.Add('template/.agent/STATE.md: inactive bootstrap contains an active conditional section')
     }
 
     return @($problems)
@@ -241,6 +295,14 @@ if (Test-Path -LiteralPath $liteSkillPath -PathType Leaf) {
 
 if ($internalPathProblems.Count -gt 0) {
     Add-Finding -Id 'internal_path_missing' -Details @($internalPathProblems)
+}
+
+$bootstrapProblems = Test-BootstrapState `
+    -LoopPath (Join-Path $resolvedRoot 'template/.agent/LOOP.md') `
+    -StatePath (Join-Path $resolvedRoot 'template/.agent/STATE.md') `
+    -StateMachinePath (Join-Path $resolvedRoot 'template/.agent/STATE_MACHINE.md')
+if ($bootstrapProblems.Count -gt 0) {
+    Add-Finding -Id 'bootstrap_state_invalid' -Details @($bootstrapProblems)
 }
 
 Write-Result -ResolvedRoot $resolvedRoot -Checks $checkCount -Errors $findings -AsJson:$Json -WithExplanation:$Explain

@@ -73,7 +73,7 @@ try {
 
     Assert-Test -Name 'valid_template_passes' -Body {
         $result = Invoke-Checker -Fixture (New-Fixture)
-        if ($result.ExitCode -ne 0 -or ($result.Output -join "`n") -notmatch '^PASS: 7 checks$') { throw 'expected a passing default check' }
+        if ($result.ExitCode -ne 0 -or ($result.Output -join "`n") -notmatch '^PASS: 8 checks$') { throw 'expected a passing default check' }
     }
 
     Assert-Test -Name 'missing_required_file_fails' -Body {
@@ -104,6 +104,33 @@ try {
         if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'lite_state_machine_reference') { throw 'Lite default state-machine dependency was not reported' }
     }
 
+    Assert-Test -Name 'bootstrap_missing_state_field_fails' -Body {
+        $fixture = New-Fixture
+        $statePath = Join-Path $fixture 'template\.agent\STATE.md'
+        $stateText = [System.IO.File]::ReadAllText($statePath, [System.Text.Encoding]::UTF8)
+        $stateText = [regex]::Replace($stateText, '(?ms)^## Stage\r?\n\r?\n`none`\r?\n\r?\n', '')
+        [System.IO.File]::WriteAllText($statePath, $stateText, [System.Text.Encoding]::UTF8)
+        $result = Invoke-Checker -Fixture $fixture
+        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'bootstrap_state_invalid') { throw 'missing inactive Stage field was not reported' }
+    }
+
+    Assert-Test -Name 'bootstrap_completed_status_fails' -Body {
+        $fixture = New-Fixture
+        $statePath = Join-Path $fixture 'template\.agent\STATE.md'
+        $stateText = [System.IO.File]::ReadAllText($statePath, [System.Text.Encoding]::UTF8)
+        $stateText = [regex]::Replace($stateText, '(?m)(^## Status\r?\n\r?\n`)inactive(`\s*$)', '$1completed$2')
+        [System.IO.File]::WriteAllText($statePath, $stateText, [System.Text.Encoding]::UTF8)
+        $result = Invoke-Checker -Fixture $fixture
+        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'bootstrap_state_invalid') { throw 'completed bootstrap Status was not reported' }
+    }
+
+    Assert-Test -Name 'bootstrap_fabricated_sc_fails' -Body {
+        $fixture = New-Fixture
+        Add-Content -LiteralPath (Join-Path $fixture 'template\.agent\LOOP.md') -Value '- **SC-1:** fabricated bootstrap criterion' -Encoding UTF8
+        $result = Invoke-Checker -Fixture $fixture
+        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'bootstrap_state_invalid') { throw 'fabricated bootstrap Success Criterion was not reported' }
+    }
+
     Assert-Test -Name 'explain_includes_error_detail' -Body {
         $fixture = New-Fixture
         Add-Content -LiteralPath (Join-Path $fixture 'template\AGENTS.md') -Value 'AskUserQuestion' -Encoding UTF8
@@ -120,7 +147,7 @@ try {
         $secondText = $second.Output -join "`n"
         if ($first.ExitCode -ne 0 -or $second.ExitCode -ne 0) { throw 'JSON check did not pass' }
         $parsed = $firstText | ConvertFrom-Json
-        if (-not $parsed.passed -or $parsed.checks -ne 7) { throw 'JSON result was incomplete' }
+        if (-not $parsed.passed -or $parsed.checks -ne 8) { throw 'JSON result was incomplete' }
         if ($firstText -cne $secondText) { throw 'JSON result was not stable' }
     }
 }

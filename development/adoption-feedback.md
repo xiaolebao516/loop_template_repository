@@ -17,10 +17,12 @@ Treat every finding as a candidate. Promote a finding to `template/` or a future
 3. **state_weakened_for_legacy_compatibility:** Retaining `tasks.md` reduced deployed STATE to a pointer and prevented it from taking over current-task responsibility.
 4. **deployment_logged_in_target:** Deployment activity was written to target `tasks`, STATE, and LOG. Deployment must remain an external template-repository process; only a completed deployment's real project Loops belong in target LOOP/STATE/LOG.
 5. **source_provenance_missing:** The deployment report lacked verifiable Source Commit, Template Tree Hash, Source Worktree Clean, and Deployment Source information.
+6. **bootstrap_state_undefined:** Replacement deployment correctly stopped before edits because the template did not define a legal no-active-Loop initialization. Inactive must be lifecycle metadata rather than a new Stage, and deployment must not create target-project LOOP, STATE, or LOG history.
 
 ## Template Gaps
 
 - **bootstrap_state_validation:** Validate whether the latest template defines a legal clean initialization with no active Loop. Do not invent a target-project Stage or create a completed deployment Loop.
+- **bootstrap_state_undefined:** Define and validate the inactive bootstrap representation before the next replacement deployment.
 
 ## Deployment Prompt Gaps
 
@@ -36,6 +38,7 @@ Treat every finding as a candidate. Promote a finding to `template/` or a future
 ## Validation Needed
 
 - Whether the latest template supports legal no-active-Loop initialization.
+- Inactive recovery; independent Lite work while inactive; first Standard work starting from alignment; direct PERSIST after complete approval; cancellation before approval restoring inactive; and an empty LOG being legal.
 - Whether replacement migration lets new LOOP/STATE independently align requirements, plan, execute, verify, and recover after legacy control files are removed.
 - Whether passive long-term specification documents avoid increasing daily context.
 - Whether the first real Lite and Standard tasks operate without any legacy control files.
@@ -43,6 +46,7 @@ Treat every finding as a candidate. Promote a finding to `template/` or a future
 ## Decisions
 
 - Keep all findings from this single adoption as candidates; do not change formal template rules without validation and approval.
+- Treat inactive as lifecycle metadata, not a new Standard Stage; deployment itself must not create target-project Loop, State, or Log history.
 
 ## Closed Findings
 

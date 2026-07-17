@@ -17,6 +17,8 @@ After Standard is selected, read in this order:
 
 `.agent/STATE_MACHINE.md` is the sole source of truth for Standard Stage definitions, legal transitions, approval handling, PERSIST, DELIVER, recovery, iteration counting, and State update timing. On entry or recovery, validate the current State against that protocol. If State is incomplete or conflicts with LOOP, stop and explain the discrepancy rather than guessing.
 
+First identify whether STATE is inactive. Do not treat framework installation as a Standard Loop. From inactive, initialize STATE at `alignment` when the task still needs alignment or planning, while LOOP remains inactive until PERSIST. If the user already supplied and approved the complete Goal, Boundary / Scope, numbered Success Criteria, and implementation plan, follow the protocol's direct PERSIST initialization instead. The protocol defines cancellation back to inactive.
+
 Read `.agent/MODEL_POLICY.md` only at its defined recommendation checkpoints. It recommends capability and reasoning effort only and never changes the model automatically.
 
 ## Stage Work

@@ -78,6 +78,7 @@ Load `.agents/skills/workflow-lite/SKILL.md` only for Lite and `.agents/skills/w
 
 After selecting a workflow, load only the files required by that workflow.
 
+- **Inactive bootstrap:** `inactive` means no Standard Loop or recoverable Standard draft is active. Lite does not activate it; Standard initializes a fresh instance under `.agent/STATE_MACHINE.md`.
 - **Lite:** Read `.agent/LOOP.md` only when the task belongs to that Loop, then load the Lite Skill. Lite does not normally read `.agent/STATE_MACHINE.md` or maintain `.agent/STATE.md`; an independent Lite task has no state-machine context cost.
 - **Standard:** Read in this order: `.agent/LOOP.md` → `.agent/STATE_MACHINE.md` → `.agent/STATE.md` → Standard Skill. The state-machine protocol defines Standard stages, legal transitions, recovery, and State update requirements; the Skill executes the current stage.
 - **Lite upgrade:** Load the state-machine protocol and initialize the relevant Standard State only after the user approves the upgrade.

@@ -1,53 +1,34 @@
 # Loop Contract
 
-This file is the canonical contract for the current Loop. A Loop Goal is the bounded result this Loop must continuously advance and eventually deliver. It may represent a short requirement set, a milestone, a feature, a bug fix, or any sustained task that needs state, feedback, verification, and iteration.
+This file becomes the canonical contract only for an active Loop. A Loop Goal is the bounded result that Loop must continuously advance and eventually deliver. It may represent a short requirement set, a milestone, a feature, a bug fix, or any sustained task that needs state, feedback, verification, and iteration.
 
-Keep this section structure stable. When starting a new Loop, replace the Goal, Boundary / Scope, and Success Criteria. During an active Loop, do not materially rewrite the Goal or change the success criteria without user confirmation.
+## Status
+
+`inactive`
+
+There is currently no active Standard Loop. This inactive record is lifecycle metadata, not a current Loop contract. Do not infer a requirement from `none` values below.
 
 ## Goal
 
-`[LOOP_GOAL]`
-
-Define a result with a clear boundary that is as completable and verifiable as practical. Do not substitute a broad project vision unless that vision is the actual deliverable of this Loop.
+`none`
 
 ## Boundary / Scope
 
-### In Scope
-
-- `[IN_SCOPE_ITEM]`
-
-### Out of Scope
-
-- `[OUT_OF_SCOPE_ITEM]`
-
-### Decision Boundary
-
-The Agent may decide ordinary implementation details, investigate local problems, iterate within the approved scope, and add necessary targeted verification.
-
-Ask the user before proceeding when:
-
-- requirements have multiple materially different interpretations;
-- the work would change a core algorithm, metric, architecture, dependency, or public interface;
-- the scope must expand;
-- a Success Criterion must be added, removed, weakened, or materially changed; or
-- the work introduces a high-impact risk or irreversible operation.
+`none`
 
 ## Success Criteria
 
-Use stable identifiers for every criterion. Do not renumber an existing criterion during the same Loop.
+`none`
 
-- **SC-1:** `[VERIFIABLE_OUTCOME]`
-- **SC-2:** `[VERIFIABLE_OUTCOME]`
-
-Add or remove criteria when starting a new Loop. During an active Loop, obtain user confirmation before materially changing this list.
+On PERSIST for an approved new Loop, replace the inactive Goal, Boundary / Scope, and Success Criteria with the approved contract and stable numbered `SC-*` identifiers. Do not materially rewrite an active Goal, Scope, or Success Criteria without user confirmation. Starting a Loop after a completed Loop creates a new instance; it is not a Stage transition.
 
 ## SOP
 
 1. Read the project map and current Loop contract.
 2. Select the appropriate Workflow through `AGENTS.md` and load only that Workflow Skill.
-3. Execute the current stage within the approved boundary.
-4. Verify the stage exit conditions and the applicable Success Criteria.
-5. Update current state or task results without duplicating this contract.
+3. Execute the current Stage within the approved boundary.
+4. Verify the Stage exit conditions and the applicable Success Criteria.
+5. Update current State or task results without duplicating this contract.
 6. Review potential learning and route durable knowledge appropriately.
 7. Deliver the result with verification evidence and remaining limitations.
 
