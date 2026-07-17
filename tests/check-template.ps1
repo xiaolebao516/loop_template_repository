@@ -73,7 +73,7 @@ try {
 
     Assert-Test -Name 'valid_template_passes' -Body {
         $result = Invoke-Checker -Fixture (New-Fixture)
-        if ($result.ExitCode -ne 0 -or ($result.Output -join "`n") -notmatch '^PASS: 8 checks$') { throw 'expected a passing default check' }
+        if ($result.ExitCode -ne 0 -or ($result.Output -join "`n") -notmatch '^PASS: 9 checks$') { throw 'expected a passing default check' }
     }
 
     Assert-Test -Name 'missing_required_file_fails' -Body {
@@ -131,6 +131,50 @@ try {
         if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'bootstrap_state_invalid') { throw 'fabricated bootstrap Success Criterion was not reported' }
     }
 
+    Assert-Test -Name 'reference_gitkeep_missing_fails' -Body {
+        $fixture = New-Fixture
+        Remove-Item -LiteralPath (Join-Path $fixture 'template\.agent\reference\.gitkeep') -Force
+        $result = Invoke-Checker -Fixture $fixture
+        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'reference_work_contract_invalid') { throw 'missing reference directory marker was not reported' }
+    }
+
+    Assert-Test -Name 'work_gitkeep_missing_fails' -Body {
+        $fixture = New-Fixture
+        Remove-Item -LiteralPath (Join-Path $fixture 'template\.agent\work\.gitkeep') -Force
+        $result = Invoke-Checker -Fixture $fixture
+        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'reference_work_contract_invalid') { throw 'missing work directory marker was not reported' }
+    }
+
+    Assert-Test -Name 'active_references_default_missing_fails' -Body {
+        $fixture = New-Fixture
+        $statePath = Join-Path $fixture 'template\.agent\STATE.md'
+        $stateText = [System.IO.File]::ReadAllText($statePath, [System.Text.Encoding]::UTF8)
+        $stateText = [regex]::Replace($stateText, '(?ms)^## Active References\r?\n\r?\n`none`\r?\n\r?\n', '')
+        [System.IO.File]::WriteAllText($statePath, $stateText, [System.Text.Encoding]::UTF8)
+        $result = Invoke-Checker -Fixture $fixture
+        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'reference_work_contract_invalid') { throw 'missing inactive Active References was not reported' }
+    }
+
+    Assert-Test -Name 'work_directory_default_missing_fails' -Body {
+        $fixture = New-Fixture
+        $statePath = Join-Path $fixture 'template\.agent\STATE.md'
+        $stateText = [System.IO.File]::ReadAllText($statePath, [System.Text.Encoding]::UTF8)
+        $stateText = [regex]::Replace($stateText, '(?ms)^## Work Directory\r?\n\r?\n`none`\r?\n\r?\n', '')
+        [System.IO.File]::WriteAllText($statePath, $stateText, [System.Text.Encoding]::UTF8)
+        $result = Invoke-Checker -Fixture $fixture
+        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'reference_work_contract_invalid') { throw 'missing inactive Work Directory was not reported' }
+    }
+
+    Assert-Test -Name 'deliver_work_cleanup_missing_fails' -Body {
+        $fixture = New-Fixture
+        $protocolPath = Join-Path $fixture 'template\.agent\STATE_MACHINE.md'
+        $protocolText = [System.IO.File]::ReadAllText($protocolPath, [System.Text.Encoding]::UTF8)
+        $protocolText = $protocolText.Replace('Before DELIVER completes, classify and clean all Work Directory content.', '')
+        [System.IO.File]::WriteAllText($protocolPath, $protocolText, [System.Text.Encoding]::UTF8)
+        $result = Invoke-Checker -Fixture $fixture
+        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'reference_work_contract_invalid') { throw 'missing DELIVER work cleanup rule was not reported' }
+    }
+
     Assert-Test -Name 'explain_includes_error_detail' -Body {
         $fixture = New-Fixture
         Add-Content -LiteralPath (Join-Path $fixture 'template\AGENTS.md') -Value 'AskUserQuestion' -Encoding UTF8
@@ -147,7 +191,7 @@ try {
         $secondText = $second.Output -join "`n"
         if ($first.ExitCode -ne 0 -or $second.ExitCode -ne 0) { throw 'JSON check did not pass' }
         $parsed = $firstText | ConvertFrom-Json
-        if (-not $parsed.passed -or $parsed.checks -ne 8) { throw 'JSON result was incomplete' }
+        if (-not $parsed.passed -or $parsed.checks -ne 9) { throw 'JSON result was incomplete' }
         if ($firstText -cne $secondText) { throw 'JSON result was not stable' }
     }
 }

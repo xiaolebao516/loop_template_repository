@@ -9,7 +9,7 @@ $ErrorActionPreference = 'Stop'
 if ([string]::IsNullOrWhiteSpace($Root)) {
     $Root = Split-Path -Parent $PSScriptRoot
 }
-$checkCount = 8
+$checkCount = 9
 $findings = New-Object System.Collections.ArrayList
 
 function Add-Finding {
@@ -149,6 +149,66 @@ function Test-BootstrapState {
     }
     if ([regex]::IsMatch($stateText, '(?m)^## (Plan Status|Approval Context|Proposed Contract Draft|Iteration Control|Blocked Context)\s*$')) {
         [void]$problems.Add('template/.agent/STATE.md: inactive bootstrap contains an active conditional section')
+    }
+
+    return @($problems)
+}
+
+function Test-ReferenceWorkContract {
+    param([Parameter(Mandatory = $true)][string]$ResolvedRoot)
+
+    $problems = New-Object System.Collections.ArrayList
+    $referenceKeep = Join-Path $ResolvedRoot 'template/.agent/reference/.gitkeep'
+    $workKeep = Join-Path $ResolvedRoot 'template/.agent/work/.gitkeep'
+    foreach ($entry in @(
+            @{ Path = $referenceKeep; Relative = 'template/.agent/reference/.gitkeep' },
+            @{ Path = $workKeep; Relative = 'template/.agent/work/.gitkeep' }
+        )) {
+        if (-not (Test-Path -LiteralPath $entry.Path -PathType Leaf)) {
+            [void]$problems.Add($entry.Relative + ': required directory marker is missing')
+        }
+        elseif ((Get-Item -LiteralPath $entry.Path).Length -ne 0) {
+            [void]$problems.Add($entry.Relative + ': directory marker must remain empty')
+        }
+    }
+
+    foreach ($directory in @('template/.agent/reference', 'template/.agent/work')) {
+        $directoryPath = Join-Path $ResolvedRoot $directory
+        if (Test-Path -LiteralPath $directoryPath -PathType Container) {
+            foreach ($file in Get-ChildItem -LiteralPath $directoryPath -File -Recurse -Force) {
+                if ($file.Name -ne '.gitkeep') {
+                    [void]$problems.Add((Get-RelativePath -BasePath $ResolvedRoot -Path $file.FullName) + ': template information layer must not contain project-specific seed content')
+                }
+            }
+        }
+    }
+
+    $statePath = Join-Path $ResolvedRoot 'template/.agent/STATE.md'
+    if (Test-Path -LiteralPath $statePath -PathType Leaf) {
+        $stateText = Get-FileText -Path $statePath
+        foreach ($heading in @('Active References', 'Work Directory')) {
+            $pattern = '(?m)^## ' + [regex]::Escape($heading) + '\r?\n\r?\n`none`\s*$'
+            if (-not [regex]::IsMatch($stateText, $pattern)) {
+                [void]$problems.Add('template/.agent/STATE.md: inactive ' + $heading + ' must be none')
+            }
+        }
+    }
+
+    $contractMarkers = @(
+        @{ Path = 'template/AGENTS.md'; Text = 'Read only the specific reference files required by the current task; never load `.agent/reference/` by default or recursively.' },
+        @{ Path = 'template/AGENTS.md'; Text = 'Human Deliverables are not default Agent context;' },
+        @{ Path = 'template/.agent/STATE_MACHINE.md'; Text = 'Work is an optional temporary layer for complex research, analysis, or recovery.' },
+        @{ Path = 'template/.agent/STATE_MACHINE.md'; Text = 'Before DELIVER completes, classify and clean all Work Directory content.' },
+        @{ Path = 'template/.agents/skills/workflow-standard/SKILL.md'; Text = 'Load only the exact reference files required by the current task; never recursively load `.agent/reference/`.' },
+        @{ Path = 'template/.agents/skills/workflow-standard/SKILL.md'; Text = 'Use `.agent/work/<loop-id>/` only when complex research, analysis, or recovery material must persist.' },
+        @{ Path = 'template/.agents/skills/workflow-standard/SKILL.md'; Text = 'Complete work classification and cleanup before DELIVER.' },
+        @{ Path = 'template/.agents/skills/workflow-lite/SKILL.md'; Text = 'Do not create `.agent/work/` by default.' }
+    )
+    foreach ($marker in $contractMarkers) {
+        $path = Join-Path $ResolvedRoot $marker.Path
+        if ((Test-Path -LiteralPath $path -PathType Leaf) -and -not (Get-FileText -Path $path).Contains($marker.Text)) {
+            [void]$problems.Add($marker.Path + ': required reference/work contract marker is missing')
+        }
     }
 
     return @($problems)
@@ -303,6 +363,11 @@ $bootstrapProblems = Test-BootstrapState `
     -StateMachinePath (Join-Path $resolvedRoot 'template/.agent/STATE_MACHINE.md')
 if ($bootstrapProblems.Count -gt 0) {
     Add-Finding -Id 'bootstrap_state_invalid' -Details @($bootstrapProblems)
+}
+
+$referenceWorkProblems = Test-ReferenceWorkContract -ResolvedRoot $resolvedRoot
+if ($referenceWorkProblems.Count -gt 0) {
+    Add-Finding -Id 'reference_work_contract_invalid' -Details @($referenceWorkProblems)
 }
 
 Write-Result -ResolvedRoot $resolvedRoot -Checks $checkCount -Errors $findings -AsJson:$Json -WithExplanation:$Explain

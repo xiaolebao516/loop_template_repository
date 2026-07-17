@@ -12,10 +12,12 @@
 - `.agent/STATE_MACHINE.md`：仅供 Standard 使用的声明式阶段、转移、恢复和状态更新协议。
 - `.agent/LOG.md`：已结束任务的精简历史。
 - `.agent/MODEL_POLICY.md`：按 Workflow、阶段和任务性质推荐模型能力与推理强度，不自动切换模型。
+- `.agent/reference/`：由项目适配并按任务精确读取的 Agent 专项参考层。
+- `.agent/work/`：复杂 Loop 按需使用、在交付前分流清理的临时工作层。
 - `.agents/skills/workflow-lite/SKILL.md`：低风险、局部任务的轻量工作流。
 - `.agents/skills/workflow-standard/SKILL.md`：需要规划、状态维护和真实验收的标准工作流。
 
-目标项目中的 Agent 从 `AGENTS.md` 进入，先推荐 Workflow、说明依据并且只加载一种 Workflow Skill；用户可覆盖推荐，但不能跳过必要确认和验收门禁。Lite 默认不读取状态机协议。Standard 按 `LOOP.md` → `STATE_MACHINE.md` → `STATE.md` → Standard Skill 的顺序恢复和执行；协议定义阶段语义，STATE 仅记录当前实例。`MODEL_POLICY.md` 仅推荐能力与推理强度，不自动切换模型。`LOOP.md` 是目标、范围和成功标准的唯一事实来源；任务结束后将精简结果追加到 `LOG.md`。Lite Workflow 仅在产生长期价值信息时追加日志。
+目标项目中的 Agent 从 `AGENTS.md` 进入，先推荐 Workflow、说明依据并且只加载一种 Workflow Skill；用户可覆盖推荐，但不能跳过必要确认和验收门禁。Lite 默认不读取状态机协议。Standard 按 `LOOP.md` → `STATE_MACHINE.md` → `STATE.md` → Standard Skill 的顺序恢复和执行；协议定义阶段语义，STATE 仅记录当前实例。`MODEL_POLICY.md` 仅推荐能力与推理强度，不自动切换模型。`LOOP.md` 是目标、范围和成功标准的唯一事实来源；任务结束后将精简结果追加到 `LOG.md`。Lite Workflow 仅在产生长期价值信息时追加日志。具体 reference、Human Deliverables 和 Verification Evidence 内容与路径由目标项目适配，模板不附带项目专项正文。
 
 ## 模板静态检查
 
@@ -37,6 +39,6 @@ powershell -ExecutionPolicy Bypass -File .\tests\check-template.ps1
 - CLI 或自动模型切换
 - 自动部署 Skill
 
-## 后续方向
+## 使用观察期
 
-先将 V0 部署到真实项目试运行，观察工作流选择、状态维护和验收记录是否有效，再根据证据细化规则并封装部署能力。
+模板 MVP 已进入使用观察期；后续仅根据真实 Lite、跨会话 Standard、多 Loop 和跨项目证据评估现有协议。

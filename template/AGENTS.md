@@ -9,6 +9,10 @@
 - Completed task log: `.agent/LOG.md`
 - Model recommendation policy: `.agent/MODEL_POLICY.md`
 - Standard state-machine protocol: `.agent/STATE_MACHINE.md`
+- Task-scoped Agent references: `.agent/reference/`
+- Optional temporary Loop work: `.agent/work/`
+- Human Deliverables: `[HUMAN_DELIVERABLES_PATH]`
+- Verification Evidence: `[VERIFICATION_EVIDENCE_PATH]`
 - Workflow skills: `.agents/skills/`
 
 ## Command Entry Points
@@ -77,6 +81,11 @@ Load `.agents/skills/workflow-lite/SKILL.md` only for Lite and `.agents/skills/w
 ## Operating Context
 
 After selecting a workflow, load only the files required by that workflow.
+
+- **Reference layer:** `.agent/reference/` contains project-specific Agent references whose authority and exact paths are mapped by this project guide. Read only the specific reference files required by the current task; never load `.agent/reference/` by default or recursively. Location in this directory does not by itself grant higher authority.
+- **Work layer:** `.agent/work/` is optional temporary storage for a complex Loop, normally under `.agent/work/<loop-id>/`. Lite does not create it by default, and simple Standard work does not need it.
+- **Human information:** Human Deliverables and Verification Evidence use the exact paths mapped in this project guide. Human Deliverables are not default Agent context; load them only by an exact project-mapped path when the task generates, updates, explains, audits, or reports on them.
+- **State boundary:** Reference and work material never replaces current task control. LOOP, STATE, and LOG remain the only contract, current-state, and minimal completion-history files.
 
 - **Inactive bootstrap:** `inactive` means no Standard Loop or recoverable Standard draft is active. Lite does not activate it; Standard initializes a fresh instance under `.agent/STATE_MACHINE.md`.
 - **Lite:** Read `.agent/LOOP.md` only when the task belongs to that Loop, then load the Lite Skill. Lite does not normally read `.agent/STATE_MACHINE.md` or maintain `.agent/STATE.md`; an independent Lite task has no state-machine context cost.

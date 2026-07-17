@@ -2,52 +2,52 @@
 
 This file belongs only to the template repository's research and development process. It is not deployed to target projects and must not record target-project business requirements, code details, experiment data, or sensitive information.
 
-Treat every finding as a candidate. Promote a finding to `template/` or a future deployment Skill only after validation and explicit approval. Temporary findings may be closed, archived, or deleted when they no longer provide value.
+Treat every finding as a candidate. Promote a finding to `template/` or a future Skill only after validation and explicit approval. Temporary findings may be closed, archived, or deleted when they no longer provide value.
 
 ## Active Adoption
 
-- Target type: mature Windows Qt project.
-- Adoption result: framework files installed; control-plane migration rejected before commit.
-- Deployment changes were never released or committed to the target project.
+- A replacement migration succeeded in the first mature Windows Qt project; one Loop control plane replaced the legacy Agent control files.
+- The inactive bootstrap passed in the real deployment. Source Commit, Template Tree Hash, and clean-worktree gates correctly stopped deployment from an outdated template source.
+- The first real Standard Loop, DOC-001, completed. Its project-governance work used the reference/work separation introduced by this MVP update.
+- DOC-001 was interrupted by account usage limits and later closed successfully. This does not by itself prove cross-session recovery from repository state alone.
 
 ## Observed Friction
 
-1. **dual_control_plane:** A compatibility migration retained `REQUIREMENTS.md`, `tasks.md`, and `PROJECT_CONTEXT.md` while introducing `LOOP.md`, `STATE.md`, `STATE_MACHINE.md`, and `LOG.md`, creating two control planes for requirements, plans, state, acceptance, and history.
-2. **legacy_control_files_misclassified:** `tasks.md` was legacy task state; `REQUIREMENTS.md` combined approval and completion state; and `PROJECT_CONTEXT.md` combined instructions, map, workflow, and current facts. Only `PROJECT_PROGRESS.md` was an independent human deliverable to retain.
-3. **state_weakened_for_legacy_compatibility:** Retaining `tasks.md` reduced deployed STATE to a pointer and prevented it from taking over current-task responsibility.
-4. **deployment_logged_in_target:** Deployment activity was written to target `tasks`, STATE, and LOG. Deployment must remain an external template-repository process; only a completed deployment's real project Loops belong in target LOOP/STATE/LOG.
-5. **source_provenance_missing:** The deployment report lacked verifiable Source Commit, Template Tree Hash, Source Worktree Clean, and Deployment Source information.
-6. **bootstrap_state_undefined:** Replacement deployment correctly stopped before edits because the template did not define a legal no-active-Loop initialization. Inactive must be lifecycle metadata rather than a new Stage, and deployment must not create target-project LOOP, STATE, or LOG history.
+- Tool-level replacement of high-risk files may require a second human authorization after the risk is explained.
 
 ## Template Gaps
 
-- **bootstrap_state_validation:** Validate whether the latest template defines a legal clean initialization with no active Loop. Do not invent a target-project Stage or create a completed deployment Loop.
-- **bootstrap_state_undefined:** Define and validate the inactive bootstrap representation before the next replacement deployment.
+- None active after the inactive bootstrap and reference/work MVP contracts were defined. Remaining evidence needs are tracked below.
 
 ## Deployment Prompt Gaps
 
-- **migration_mode_and_provenance:** Deployment guidance needs an explicit migration choice, legacy-control-file classification, and source-provenance record.
+- None active. Replacement migration classification and source-provenance gates were validated in the first mature-project adoption.
 
 ## Candidate Changes
 
-- Add explicit compatibility-migration and replacement-migration choices; default to replacement when files are confirmed legacy Agent control files.
-- Classify pre-existing files as project assets, human deliverables, or legacy Agent control files before deployment.
-- Keep deployment itself out of target LOOP/STATE/LOG and record template source commit and tree hash at deployment start.
-- Require a content-coverage audit before deleting legacy control files; move lasting information to passive, on-demand project documentation rather than a second control plane.
+- Human-document audit and layering may become a Skill candidate if it recurs with clear net benefit.
+- Weekly or project-report generation may become a separate Skill candidate under the same evidence threshold.
 
 ## Validation Needed
 
-- Whether the latest template supports legal no-active-Loop initialization.
-- Inactive recovery; independent Lite work while inactive; first Standard work starting from alignment; direct PERSIST after complete approval; cancellation before approval restoring inactive; and an empty LOG being legal.
-- Whether replacement migration lets new LOOP/STATE independently align requirements, plan, execute, verify, and recover after legacy control files are removed.
-- Whether passive long-term specification documents avoid increasing daily context.
-- Whether the first real Lite and Standard tasks operate without any legacy control files.
+- **Independent Lite:** Does not read STATE_MACHINE, create work, or modify LOOP / STATE / LOG; reads only an exact reference file when needed.
+- **True cross-session Standard recovery:** A new session resumes only from LOOP, STATE, exact reference files, and necessary work, without old conversation context.
+- **Multiple real Loops:** Confirm the minimal LOG remains sufficient and the boundary between a completed instance and the next initialization remains clear.
+- **Approval paths:** Validate combined approval, partial approval, and recovery after awaiting-approval.
+- **Cross-project use:** Validate reference/work in a different project type before adding any further default structure.
+- **Skill candidates:** Reconsider human-document audit/layering and weekly/project reporting only after repeated evidence of net benefit.
 
 ## Decisions
 
-- Keep all findings from this single adoption as candidates; do not change formal template rules without validation and approval.
-- Treat inactive as lifecycle metadata, not a new Standard Stage; deployment itself must not create target-project Loop, State, or Log history.
+- Inactive is lifecycle metadata, not an eleventh Stage.
+- Deployment activity never enters target-project LOOP, STATE, or LOG.
+- Replacement migration classifies and migrates legacy Agent control files instead of retaining a compatibility control plane.
+- Reference and work are general Loop information layers: reference holds task-selected durable Agent material, while work holds optional temporary complex-Loop material.
+- Human-document directories, weekly reports, and legacy-document governance remain project adaptations or future Skill candidates, not generic template defaults.
 
 ## Closed Findings
 
-- None. The rejected deployment introduced no released or committed target-project change.
+- **dual_control_plane / legacy_control_files_misclassified / state_weakened_for_legacy_compatibility:** Closed by the successful replacement migration and single Loop control plane.
+- **deployment_logged_in_target:** Closed by keeping deployment history outside target LOOP / STATE / LOG.
+- **source_provenance_missing:** Closed by validated Source Commit, Template Tree Hash, and clean-worktree gates.
+- **bootstrap_state_undefined / bootstrap_state_validation:** Closed by the deployed inactive lifecycle protocol.

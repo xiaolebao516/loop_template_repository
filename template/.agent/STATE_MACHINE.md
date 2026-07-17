@@ -81,14 +81,21 @@ Use PERSIST only after the approval required for the work is recorded.
 For a new Loop or an approved material contract change with full contract approval:
 
 1. Replace inactive LOOP content, or update an approved materially changed active contract, with the approved Goal, Boundary / Scope, and numbered Success Criteria.
-2. Initialize or update STATE with the approved milestone, task, approved plan, concise approval evidence in Current Judgment, and steps.
-3. Create or update Verification Status by `SC-*` identifier only, with `pending` unless evidence supports another status.
-4. Clear obsolete Draft Plan, Proposed Contract Draft, and Approval Context.
-5. Set Stage to `execution`.
+2. Initialize or update STATE with the approved milestone, task, approved plan, concise approval evidence in Current Judgment, steps, and the exact confirmed Active References. Preserve Work Directory only when its temporary material remains necessary.
+3. Do not promote unconfirmed judgments from Work Directory into the Loop contract or approved plan.
+4. Create or update Verification Status by `SC-*` identifier only, with `pending` unless evidence supports another status.
+5. Clear obsolete Draft Plan, Proposed Contract Draft, and Approval Context.
+6. Set Stage to `execution`.
 
 For a self-contained partially approved subtask within an already valid Loop contract, do not rewrite `LOOP.md`; mark Plan Status `partially-approved`, preserve only the pending portion in Approval Context, limit State Steps to the approved portion, and then set or retain `execution`. A partial approval cannot write a new or materially changed Loop contract.
 
 For an ordinary fully approved subtask within the existing Loop, do not rewrite `LOOP.md`; update only the relevant approved State fields and then set or retain `execution`.
+
+## Reference and Work Layers
+
+Project `AGENTS.md` maps the authority and exact paths of reference files, Human Deliverables, and Verification Evidence. Read only the specific `.agent/reference/` files required by the current task; never recursively load that directory. Record those exact file paths in STATE Active References without copying their contents.
+
+Work is an optional temporary layer for complex research, analysis, or recovery. Create `.agent/work/<loop-id>/` only when such material must persist, record its exact path in STATE Work Directory, and never treat it as a long-term fact source or permanent project history. Human Deliverables are read only by an exact project-mapped path when the task requires their generation, update, explanation, audit, or reporting.
 
 ## Stage Protocols
 
@@ -96,8 +103,8 @@ For an ordinary fully approved subtask within the existing Loop, do not rewrite 
 
 - **Purpose:** Align the Loop contract, constraints, milestone, task, and material ambiguities.
 - **Entry Conditions:** New Standard work; approved Lite upgrade without a complete package; or evidence that requirements or the Loop contract need revision.
-- **Allowed Actions:** Read-only inspection, clarification, evidence collection, and explicitly marked draft preparation. Do not implement product changes.
-- **Required State Fields:** Workflow, Stage, Status, Active Milestone, Current Task, Current Judgment, Next Actions; add conditional draft or approval sections only when needed.
+- **Allowed Actions:** Read-only inspection, clarification, evidence collection, explicitly marked draft preparation, and identification of the exact task-relevant reference files. Record exact paths in Active References; do not recursively load the reference directory. Do not implement product changes.
+- **Required State Fields:** Workflow, Stage, Status, Active Milestone, Current Task, Active References, Work Directory, Current Judgment, Next Actions; add conditional draft or approval sections only when needed.
 - **Exit Conditions:** Material ambiguity is resolved or explicitly awaiting a decision, and the next research/planning action is known; alternatively, the complete package is already approved.
 - **Allowed Next Stages:** `research-gap`, `planning`, `awaiting-approval`, PERSIST to `execution`, or `blocked`.
 - **User Approval Requirements:** Obtain approval before material Goal, Scope, or SC changes, high-impact choices, and other LOOP or AGENTS decision-boundary changes.
@@ -107,8 +114,8 @@ For an ordinary fully approved subtask within the existing Loop, do not rewrite 
 
 - **Purpose:** Resolve an external fact or repository constraint that affects the approach.
 - **Entry Conditions:** Alignment, planning, or execution has identified a specific evidence gap.
-- **Allowed Actions:** Conduct targeted research or audit; record only concise conclusions, evidence references, and their effect in Current Judgment. Do not store a research-chat transcript.
-- **Required State Fields:** Current Judgment, evidence reference, unresolved question, and Next Actions.
+- **Allowed Actions:** Conduct targeted research or audit; read only exact task-relevant reference files; record concise conclusions, evidence references, and their effect in Current Judgment. When complex material must persist, create `.agent/work/<loop-id>/` and record it in Work Directory. Do not store a research-chat transcript in State.
+- **Required State Fields:** Active References, Work Directory, Current Judgment, evidence reference, unresolved question, and Next Actions.
 - **Exit Conditions:** The gap is resolved, it changes the contract, or further progress is impossible.
 - **Allowed Next Stages:** `planning`, `alignment`, or `blocked`.
 - **User Approval Requirements:** Research itself normally needs none; findings that change the contract or cross a decision boundary return to `alignment` for approval.
@@ -118,8 +125,8 @@ For an ordinary fully approved subtask within the existing Loop, do not rewrite 
 
 - **Purpose:** Produce a concrete Draft Plan mapped to verification, risks, assumptions, and likely files.
 - **Entry Conditions:** Alignment is sufficient and no unresolved research gap blocks a plan.
-- **Allowed Actions:** Plan and assess; do not implement product behavior.
-- **Required State Fields:** Plan Status `draft`, Plan and Steps, Current Judgment, Next Actions, and Approval Context when a decision is ready to request.
+- **Allowed Actions:** Plan and assess, updating exact Active References and Work Directory when their actual use changes; do not implement product behavior.
+- **Required State Fields:** Active References, Work Directory, Plan Status `draft`, Plan and Steps, Current Judgment, Next Actions, and Approval Context when a decision is ready to request.
 - **Exit Conditions:** The plan is actionable and ready for approval, or a new gap or contract change is found.
 - **Allowed Next Stages:** `awaiting-approval`, `research-gap`, `alignment`, PERSIST to `execution` when the exact plan is already approved, or `blocked`.
 - **User Approval Requirements:** Implementation needs approval matching the actual plan unless the exact complete package was already approved.
@@ -218,13 +225,18 @@ Track a failure by `Active Failure = SC identifier + stable failure signature`. 
 
 Run DELIVER only from `learning`, or from `reporting` when a report is required and complete. Before setting `completed`:
 
-1. Generate the final delivery summary.
-2. Preserve final SC results, limitations, accepted exceptions and their evidence, and the LOG reference in State.
-3. Update `LOG.md` according to its rules.
-4. Clear obsolete temporary information, including resolved Iteration Control, resolved Blocked Context, stale drafts, and stale model recommendations.
-5. State a user-executable acceptance method and any remaining actions.
-6. Confirm whether any remaining item is an accepted limitation or requires a follow-up Loop.
-7. Set Stage to `completed` only after every DELIVER responsibility above is complete.
+Before DELIVER completes, classify and clean all Work Directory content.
+
+1. Route durable conclusions that future Agents may rely on to an appropriate exact reference file.
+2. Route formal human-facing output to the project-mapped Human Deliverables location; keep current contract, State, and result data in LOOP, STATE, and LOG; delete temporary material with no lasting value.
+3. Remove the current Loop's temporary work directory after routing is complete and restore Work Directory to `none`.
+4. Generate the final delivery summary.
+5. Preserve final SC results, limitations, accepted exceptions and their evidence, and the LOG reference in State.
+6. Update `LOG.md` with only its minimal completion index; do not copy human reports or temporary research into it.
+7. Clear obsolete temporary information, including resolved Iteration Control, resolved Blocked Context, stale drafts, and stale model recommendations.
+8. State a user-executable acceptance method and any remaining actions.
+9. Confirm whether any remaining item is an accepted limitation or requires a follow-up Loop.
+10. Set Stage to `completed` only after every DELIVER responsibility above is complete.
 
 Without a report: `learning -> DELIVER -> completed`. With a report: `learning -> reporting -> DELIVER -> completed`.
 
@@ -245,7 +257,7 @@ If State is incomplete or conflicts with LOOP, stop and explain the discrepancy 
 
 ## Minimum State Update Timing
 
-Update State when a Stage changes; a user approves, partly approves, rejects, or requests revision; Current Judgment materially changes; an approved plan changes; a milestone or key Step finishes; an SC result changes; a blocker appears or resolves; work is about to be interrupted; or a model recommendation is worth preserving across context.
+Update State when a Stage changes; a user approves, partly approves, rejects, or requests revision; Current Judgment materially changes; Active References or Work Directory changes; an approved plan changes; a milestone or key Step finishes; an SC result changes; a blocker appears or resolves; work is about to be interrupted; or a model recommendation is worth preserving across context.
 
 Do not update State for every ordinary command, repeated read, temporary output, or micro-progress that changes neither the recovery point nor the current judgment.
 

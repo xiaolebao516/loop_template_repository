@@ -21,6 +21,12 @@ First identify whether STATE is inactive. Do not treat framework installation as
 
 Read `.agent/MODEL_POLICY.md` only at its defined recommendation checkpoints. It recommends capability and reasoning effort only and never changes the model automatically.
 
+## Reference and Work Use
+
+Load only the exact reference files required by the current task; never recursively load `.agent/reference/`. Do not treat project Human Deliverables as default working context; read them only at an exact project-mapped path for the task that needs them.
+
+Use `.agent/work/<loop-id>/` only when complex research, analysis, or recovery material must persist. Record actual reference and work paths in STATE, keep work material temporary, and do not promote unconfirmed intermediate judgments into the contract. Complete work classification and cleanup before DELIVER.
+
 ## Stage Work
 
 ## ALIGN
@@ -29,7 +35,7 @@ Confirm the current Loop contract, constraints, milestone, task, and material am
 
 ## RESEARCH_GAP
 
-Determine and close only the evidence gap that affects the approach. Record a concise audited conclusion and evidence reference in Current Judgment; do not store a research-chat transcript.
+Determine and close only the evidence gap that affects the approach. Record a concise audited conclusion and evidence reference in Current Judgment; do not store a research-chat transcript. Create temporary work only when the protocol's persistence threshold is met.
 
 ## PLAN
 

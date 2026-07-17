@@ -34,6 +34,9 @@ If the task would change the current Loop Goal, Boundary / Scope, or Success Cri
 
 - Do not create a complex plan or require formal plan approval unless an applicable confirmation or safety gate still requires it.
 - Do not maintain a complete `.agent/STATE.md`.
+- Read a specific `.agent/reference/` file only when the current task clearly needs it; never recursively load the reference directory.
+- Do not create `.agent/work/` by default. Upgrade to Standard if sustained research material, complex intermediate State, or long-term recovery becomes necessary.
+- Do not modify `.agent/LOOP.md`, `.agent/STATE.md`, or `.agent/LOG.md` by default; the conditional lasting-value logging rule below remains the only exception.
 - Do not create unnecessary research or reporting documents.
 - Do not treat compilation or a passing self-written test as sufficient completion by itself.
 
