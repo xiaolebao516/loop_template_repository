@@ -1,11 +1,15 @@
 ---
 name: workflow-standard
-description: "Execute engineering work when at least one Standard condition applies: multi-file or multi-module change; requirement ambiguity that affects the approach; plan approval; sustained state or cross-context recovery; external research or repository-constraint audit; complex real-world validation; or impact on an important experiment, report, or delivery. Do not use for an independent low-risk change that satisfies every Lite condition."
+description: "Apply the Standard workflow when AGENTS.md identifies a strong trigger, or multiple weak signals materially raise planning, risk, or recovery cost. Also use when the user explicitly selects Standard. Do not automatically downgrade an established Standard workflow to Lite."
 ---
 
 # Standard Workflow
 
 Follow `AGENTS.md`, read `.agent/LOOP.md` and `.agent/STATE.md`, and load no other Workflow Skill while using Standard.
+
+## Selection and Model Recommendation
+
+Use the workflow recommendation and any user override from `AGENTS.md`; that file owns the complete classification rules and non-waivable gates. Read `.agent/MODEL_POLICY.md` at its defined checkpoints. It recommends capability and reasoning effort only, and never changes the model automatically.
 
 Use this sequence:
 

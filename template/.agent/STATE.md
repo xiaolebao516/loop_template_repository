@@ -31,6 +31,15 @@ Allowed Stage values:
 
 Use Status as a one-line human-readable summary of the overall situation; Stage alone identifies workflow position, and Status neither replaces Stage nor introduces a second state-machine vocabulary.
 
+## Model Recommendation (Optional)
+
+Use this section when Standard or cross-context work needs a current model recommendation. Lite normally leaves it empty. Keep only the currently effective recommendation; update or clear it when it becomes stale. Do not record a recommendation history or a concrete model mapping here.
+
+- Capability: `[FAST | BALANCED | DEEP]`
+- Reasoning Effort: `[low | medium | high]`
+- Recommendation Reason: `[CURRENT_REASON]`
+- Switch Benefit: `[unknown | none | low | medium | high]`
+
 ## Active Milestone
 
 `[CURRENT_MILESTONE_WITHIN_THE_LOOP]`

@@ -10,10 +10,11 @@
 - `.agent/LOOP.md`：当前 Loop 的目标、范围、成功标准和稳定执行契约。
 - `.agent/STATE.md`：当前 Loop 的实时执行状态。
 - `.agent/LOG.md`：已结束任务的精简历史。
+- `.agent/MODEL_POLICY.md`：按 Workflow、阶段和任务性质推荐模型能力与推理强度，不自动切换模型。
 - `.agents/skills/workflow-lite/SKILL.md`：低风险、局部任务的轻量工作流。
 - `.agents/skills/workflow-standard/SKILL.md`：需要规划、状态维护和真实验收的标准工作流。
 
-目标项目中的 Agent 从 `AGENTS.md` 进入，根据任务选择且只加载一套 Workflow Skill。`LOOP.md` 是目标、范围和成功标准的唯一事实来源；Standard Workflow 在关键阶段维护 `STATE.md`，任务结束后将精简结果追加到 `LOG.md`。Lite Workflow 仅在产生长期价值信息时追加日志。
+目标项目中的 Agent 从 `AGENTS.md` 进入，先推荐 Workflow、说明依据并且只加载一种 Workflow Skill；用户可覆盖推荐，但不能跳过必要确认和验收门禁。`MODEL_POLICY.md` 仅推荐能力与推理强度，不自动切换模型。`LOOP.md` 是目标、范围和成功标准的唯一事实来源；Standard Workflow 在关键阶段维护 `STATE.md`，任务结束后将精简结果追加到 `LOG.md`。Lite Workflow 仅在产生长期价值信息时追加日志。
 
 ## V0 边界
 

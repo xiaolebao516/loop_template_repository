@@ -1,11 +1,15 @@
 ---
 name: workflow-lite
-description: "Execute only engineering tasks for which all Lite conditions hold: requirements are clear; the change is local, low-risk, and easily reversible; no formal plan approval, sustained state, external research, or complex real-world validation is needed; and the work does not affect core architecture, algorithms, metrics, or formal delivery. Do not use when any Standard condition applies."
+description: "Apply the Lite workflow only when AGENTS.md recommends Lite for a clearly defined, local, low-risk, and reversible engineering change: no strong trigger is present and weak signals do not collectively raise planning, risk, or recovery cost. Also use when the user explicitly selects Lite; required confirmation and verification gates still apply."
 ---
 
 # Lite Workflow
 
 Follow `AGENTS.md` and the current contract in `.agent/LOOP.md` when the task belongs to that Loop. Load no other Workflow Skill while using Lite.
+
+## Selection and Model Recommendation
+
+Use the workflow recommendation and any user override from `AGENTS.md`; that file owns the complete classification rules. A Lite override does not waive any applicable confirmation, safety, or verification gate. Read `.agent/MODEL_POLICY.md` at its defined checkpoints, recommend only the target capability and reasoning effort, and never switch a model automatically.
 
 ## Standalone Lite Tasks
 
@@ -28,7 +32,7 @@ If the task would change the current Loop Goal, Boundary / Scope, or Success Cri
 
 ## Default Behavior
 
-- Do not create a complex plan or require formal plan approval.
+- Do not create a complex plan or require formal plan approval unless an applicable confirmation or safety gate still requires it.
 - Do not maintain a complete `.agent/STATE.md`.
 - Do not create unnecessary research or reporting documents.
 - Do not treat compilation or a passing self-written test as sufficient completion by itself.
