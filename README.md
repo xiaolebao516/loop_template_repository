@@ -17,6 +17,16 @@
 
 目标项目中的 Agent 从 `AGENTS.md` 进入，先推荐 Workflow、说明依据并且只加载一种 Workflow Skill；用户可覆盖推荐，但不能跳过必要确认和验收门禁。Lite 默认不读取状态机协议。Standard 按 `LOOP.md` → `STATE_MACHINE.md` → `STATE.md` → Standard Skill 的顺序恢复和执行；协议定义阶段语义，STATE 仅记录当前实例。`MODEL_POLICY.md` 仅推荐能力与推理强度，不自动切换模型。`LOOP.md` 是目标、范围和成功标准的唯一事实来源；任务结束后将精简结果追加到 `LOG.md`。Lite Workflow 仅在产生长期价值信息时追加日志。
 
+## 模板静态检查
+
+`scripts/check-template.ps1` 只读检查模板结构、Skill frontmatter 和少量确定性约束；它只维护本模板仓库，不会部署到目标项目。
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\check-template.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\check-template.ps1 -Json
+powershell -ExecutionPolicy Bypass -File .\tests\check-template.ps1
+```
+
 ## V0 边界
 
 当前不包含：

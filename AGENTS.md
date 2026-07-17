@@ -36,6 +36,7 @@ Check, as applicable:
 - LOOP Success Criteria identifiers against STATE references;
 - Workflow Skill frontmatter;
 - mutually exclusive Lite and Standard trigger conditions;
+- after changing template structure, Skills, or protocol files, run `scripts/check-template.ps1` and its corresponding test before final acceptance;
 - `git diff --check`; and
 - `git status`.
 
