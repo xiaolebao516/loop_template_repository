@@ -1,44 +1,55 @@
 # Agent Loop Engineering Template
 
-本仓库用于逐步构建一套可部署到其他项目的 Agent Loop Engineering 模板。当前 V0 只提供 Lite 与 Standard 两种工作流，用于在明确边界内持续执行、验证、记录状态并交付结果。
+本仓库维护一个可部署到目标项目的极简 Agent Loop Engineering 运行时。
 
-## 仓库结构
+## 运行时结构
 
-`template/` 中的内容用于未来部署到目标项目：
+安装后目标项目只固定包含：
 
-- `AGENTS.md`：项目地图、黄金规则入口和工作流路由器。
-- `.agent/LOOP.md`：当前 Loop 的目标、范围、成功标准和稳定执行契约。
-- `.agent/STATE.md`：当前 Loop 的实时执行状态。
-- `.agent/STATE_MACHINE.md`：仅供 Standard 使用的声明式阶段、转移、恢复和状态更新协议。
-- `.agent/LOG.md`：已结束任务的精简历史。
-- `.agent/MODEL_POLICY.md`：按 Workflow、阶段和任务性质推荐模型能力与推理强度，不自动切换模型。
-- `.agent/reference/`：由项目适配并按任务精确读取的 Agent 专项参考层。
-- `.agent/work/`：复杂 Loop 按需使用、在交付前分流清理的临时工作层。
-- `.agents/skills/workflow-lite/SKILL.md`：低风险、局部任务的轻量工作流。
-- `.agents/skills/workflow-standard/SKILL.md`：需要规划、状态维护和真实验收的标准工作流。
+```text
+AGENTS.md
+.agent/
+├── LOOP.md
+└── STATE.md
+```
 
-目标项目中的 Agent 从 `AGENTS.md` 进入，先推荐 Workflow、说明依据并且只加载一种 Workflow Skill；用户可覆盖推荐，但不能跳过必要确认和验收门禁。Lite 默认不读取状态机协议。Standard 按 `LOOP.md` → `STATE_MACHINE.md` → `STATE.md` → Standard Skill 的顺序恢复和执行；协议定义阶段语义，STATE 仅记录当前实例。`MODEL_POLICY.md` 仅推荐能力与推理强度，不自动切换模型。`LOOP.md` 是目标、范围和成功标准的唯一事实来源；任务结束后将精简结果追加到 `LOG.md`。Lite Workflow 仅在产生长期价值信息时追加日志。具体 reference、Human Deliverables 和 Verification Evidence 内容与路径由目标项目适配，模板不附带项目专项正文。
+- `AGENTS.md`：项目入口、确定性 Build / Test / Verify 命令、运行规则和初始化职责。
+- `.agent/LOOP.md`：复杂任务的 Goal、Boundaries 和 SOP；简单任务可以不填写。
+- `.agent/STATE.md`：当前恢复状态、尚未工程化的 Learnings 和最小 History。
 
-## 模板静态检查
+reference、work 和 Skills 只在真实任务需要并证明有价值时按需创建，不作为固定运行时预装。
 
-`scripts/check-template.ps1` 只读检查模板结构、Skill frontmatter 和少量确定性约束；它只维护本模板仓库，不会部署到目标项目。
+## 一键安装
+
+在不包含 `AGENTS.md`、`.agent/` 或 `.agents/` 的目标项目根目录运行：
+
+```powershell
+irm https://raw.githubusercontent.com/xiaolebao516/loop_template_repository/main/scripts/install-agent-loop.ps1 | iex
+```
+
+指定目标目录：
+
+```powershell
+& ([scriptblock]::Create((irm 'https://raw.githubusercontent.com/xiaolebao516/loop_template_repository/main/scripts/install-agent-loop.ps1'))) -Target 'D:\project'
+```
+
+安装器需要 Windows PowerShell 5.1 和 Git。它只安装三个运行时文件，发现已有 Agent 痕迹时立即停止，不覆盖、不合并、不 commit、不 push，失败时不留下半成品。`-DryRun` 和 `-VerifyOnly` 均为只读模式。
+
+## 初始化
+
+安装后只需告诉 Agent：
+
+> 初始化 Agent Loop Engineering。
+
+初始化 Agent 会审计项目结构、文档和既有构建测试入口，优先复用可靠脚本与 CI 命令；缺少统一入口时创建最薄的确定性包装脚本，实际运行 Build / Test / Verify，并将唯一正式命令写入项目 `AGENTS.md`。初始化不创建业务 LOOP 或 History，STATE 保持 inactive，默认不 commit、不 push。
+
+## 仓库验证
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\check-template.ps1
 powershell -ExecutionPolicy Bypass -File .\scripts\check-template.ps1 -Json
 powershell -ExecutionPolicy Bypass -File .\tests\check-template.ps1
+powershell -ExecutionPolicy Bypass -File .\tests\install-template.ps1
 ```
 
-## V0 边界
-
-当前不包含：
-
-- Strict Workflow
-- 多 Agent、Subagent 或 Worktree 编排
-- Hook 或可执行状态机
-- CLI 或自动模型切换
-- 自动部署 Skill
-
-## 使用观察期
-
-模板 MVP 已进入使用观察期；后续仅根据真实 Lite、跨会话 Standard、多 Loop 和跨项目证据评估现有协议。
+模板 MVP 处于真实使用观察期，后续只根据实际项目证据收敛规则。

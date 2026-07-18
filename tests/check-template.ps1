@@ -2,9 +2,11 @@
 param()
 
 $ErrorActionPreference = 'Stop'
-$checker = Join-Path (Split-Path -Parent $PSScriptRoot) 'scripts\check-template.ps1'
-$templateSource = Join-Path (Split-Path -Parent $PSScriptRoot) 'template'
-$tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('agent-template-check-' + [System.Guid]::NewGuid().ToString('N'))
+$repositoryRoot = Split-Path -Parent $PSScriptRoot
+$checker = Join-Path $repositoryRoot 'scripts\check-template.ps1'
+$templateSource = Join-Path $repositoryRoot 'template'
+$installerSource = Join-Path $repositoryRoot 'scripts\install-agent-loop.ps1'
+$tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('minimal-runtime-check-' + [System.Guid]::NewGuid().ToString('N'))
 $failures = New-Object System.Collections.ArrayList
 $testCount = 0
 
@@ -27,163 +29,91 @@ function Get-TreeHash {
 
 function New-Fixture {
     $fixture = Join-Path $tempRoot ([System.Guid]::NewGuid().ToString('N'))
-    New-Item -ItemType Directory -Path $fixture | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $fixture 'scripts') -Force | Out-Null
     Copy-Item -LiteralPath $templateSource -Destination (Join-Path $fixture 'template') -Recurse -Force
+    Copy-Item -LiteralPath $installerSource -Destination (Join-Path $fixture 'scripts\install-agent-loop.ps1')
     return $fixture
 }
 
 function Invoke-Checker {
     param(
         [string]$Fixture,
-        [switch]$Json,
-        [switch]$Explain
+        [switch]$Json
     )
 
     $before = Get-TreeHash -Path $Fixture
     $arguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $checker, '-Root', $Fixture)
-    if ($Json) {
-        $arguments += '-Json'
-    }
-    if ($Explain) {
-        $arguments += '-Explain'
-    }
+    if ($Json) { $arguments += '-Json' }
     $output = @(& powershell.exe @arguments)
     $exitCode = $LASTEXITCODE
     $after = Get-TreeHash -Path $Fixture
-    if ($before -cne $after) {
-        throw 'checker modified a fixture'
-    }
+    if ($before -cne $after) { throw 'checker modified a fixture' }
     return [PSCustomObject]@{ Output = $output; ExitCode = $exitCode }
+}
+
+function Remove-TopLevelSection {
+    param(
+        [string]$Path,
+        [string]$Heading
+    )
+
+    $text = [System.IO.File]::ReadAllText($Path, [System.Text.Encoding]::UTF8)
+    $pattern = '(?ms)^# ' + [regex]::Escape($Heading) + '\r?\n.*?(?=^# |\z)'
+    $text = [regex]::Replace($text, $pattern, '')
+    [System.IO.File]::WriteAllText($Path, $text, [System.Text.Encoding]::UTF8)
 }
 
 function Assert-Test {
     param([string]$Name, [scriptblock]$Body)
 
     $script:testCount++
-    try {
-        & $Body
-    }
-    catch {
-        Add-Failure ($Name + ': ' + $_.Exception.Message)
-    }
+    try { & $Body }
+    catch { Add-Failure ($Name + ': ' + $_.Exception.Message) }
 }
 
 try {
     New-Item -ItemType Directory -Path $tempRoot | Out-Null
 
-    Assert-Test -Name 'valid_template_passes' -Body {
+    Assert-Test -Name 'valid_minimal_template_passes' -Body {
         $result = Invoke-Checker -Fixture (New-Fixture)
-        if ($result.ExitCode -ne 0 -or ($result.Output -join "`n") -notmatch '^PASS: 9 checks$') { throw 'expected a passing default check' }
+        if ($result.ExitCode -ne 0 -or ($result.Output -join "`n") -notmatch '^PASS: 6 checks$') { throw 'expected the minimal template to pass' }
     }
 
-    Assert-Test -Name 'missing_required_file_fails' -Body {
+    foreach ($relativePath in @('AGENTS.md', '.agent\LOOP.md', '.agent\STATE.md')) {
+        Assert-Test -Name ('missing_' + $relativePath.Replace('\', '_').Replace('.', '_') + '_fails') -Body ({
+                $fixture = New-Fixture
+                Remove-Item -LiteralPath (Join-Path $fixture ('template\' + $relativePath)) -Force
+                $result = Invoke-Checker -Fixture $fixture
+                if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'minimal_runtime_contract_invalid') { throw ('missing file was not reported: ' + $relativePath) }
+            }.GetNewClosure())
+    }
+
+    foreach ($heading in @('Goal', 'Boundaries', 'SOP')) {
+        Assert-Test -Name ('loop_missing_' + $heading.ToLowerInvariant() + '_fails') -Body ({
+                $fixture = New-Fixture
+                Remove-TopLevelSection -Path (Join-Path $fixture 'template\.agent\LOOP.md') -Heading $heading
+                $result = Invoke-Checker -Fixture $fixture
+                if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'minimal_runtime_contract_invalid') { throw ('missing LOOP section was not reported: ' + $heading) }
+            }.GetNewClosure())
+    }
+
+    foreach ($heading in @('Learnings', 'History')) {
+        Assert-Test -Name ('state_missing_' + $heading.ToLowerInvariant() + '_fails') -Body ({
+                $fixture = New-Fixture
+                Remove-TopLevelSection -Path (Join-Path $fixture 'template\.agent\STATE.md') -Heading $heading
+                $result = Invoke-Checker -Fixture $fixture
+                if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'minimal_runtime_contract_invalid') { throw ('missing STATE section was not reported: ' + $heading) }
+            }.GetNewClosure())
+    }
+
+    Assert-Test -Name 'legacy_runtime_reappearance_fails' -Body {
         $fixture = New-Fixture
-        Remove-Item -LiteralPath (Join-Path $fixture 'template\.agent\LOG.md') -Force
+        Set-Content -LiteralPath (Join-Path $fixture 'template\.agent\STATE_MACHINE.md') -Value 'legacy runtime' -Encoding UTF8
         $result = Invoke-Checker -Fixture $fixture
-        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'required_file_missing') { throw 'missing required file was not reported' }
+        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'minimal_runtime_contract_invalid') { throw 'legacy runtime file was not reported' }
     }
 
-    Assert-Test -Name 'claude_only_name_fails' -Body {
-        $fixture = New-Fixture
-        Add-Content -LiteralPath (Join-Path $fixture 'template\AGENTS.md') -Value 'AskUserQuestion' -Encoding UTF8
-        $result = Invoke-Checker -Fixture $fixture
-        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'claude_only_asset') { throw 'Claude-only name was not reported' }
-    }
-
-    Assert-Test -Name 'todo_and_tbd_text_is_allowed' -Body {
-        $fixture = New-Fixture
-        Add-Content -LiteralPath (Join-Path $fixture 'template\AGENTS.md') -Value 'TODO and TBD may be ordinary task labels.' -Encoding UTF8
-        $result = Invoke-Checker -Fixture $fixture
-        if ($result.ExitCode -ne 0) { throw 'ordinary TODO or TBD text was reported as a placeholder' }
-    }
-
-    Assert-Test -Name 'lite_default_state_machine_fails' -Body {
-        $fixture = New-Fixture
-        Add-Content -LiteralPath (Join-Path $fixture 'template\.agents\skills\workflow-lite\SKILL.md') -Value 'Read .agent/STATE_MACHINE.md before every Lite task.' -Encoding UTF8
-        $result = Invoke-Checker -Fixture $fixture
-        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'lite_state_machine_reference') { throw 'Lite default state-machine dependency was not reported' }
-    }
-
-    Assert-Test -Name 'bootstrap_missing_state_field_fails' -Body {
-        $fixture = New-Fixture
-        $statePath = Join-Path $fixture 'template\.agent\STATE.md'
-        $stateText = [System.IO.File]::ReadAllText($statePath, [System.Text.Encoding]::UTF8)
-        $stateText = [regex]::Replace($stateText, '(?ms)^## Stage\r?\n\r?\n`none`\r?\n\r?\n', '')
-        [System.IO.File]::WriteAllText($statePath, $stateText, [System.Text.Encoding]::UTF8)
-        $result = Invoke-Checker -Fixture $fixture
-        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'bootstrap_state_invalid') { throw 'missing inactive Stage field was not reported' }
-    }
-
-    Assert-Test -Name 'bootstrap_completed_status_fails' -Body {
-        $fixture = New-Fixture
-        $statePath = Join-Path $fixture 'template\.agent\STATE.md'
-        $stateText = [System.IO.File]::ReadAllText($statePath, [System.Text.Encoding]::UTF8)
-        $stateText = [regex]::Replace($stateText, '(?m)(^## Status\r?\n\r?\n`)inactive(`\s*$)', '$1completed$2')
-        [System.IO.File]::WriteAllText($statePath, $stateText, [System.Text.Encoding]::UTF8)
-        $result = Invoke-Checker -Fixture $fixture
-        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'bootstrap_state_invalid') { throw 'completed bootstrap Status was not reported' }
-    }
-
-    Assert-Test -Name 'bootstrap_fabricated_sc_fails' -Body {
-        $fixture = New-Fixture
-        Add-Content -LiteralPath (Join-Path $fixture 'template\.agent\LOOP.md') -Value '- **SC-1:** fabricated bootstrap criterion' -Encoding UTF8
-        $result = Invoke-Checker -Fixture $fixture
-        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'bootstrap_state_invalid') { throw 'fabricated bootstrap Success Criterion was not reported' }
-    }
-
-    Assert-Test -Name 'reference_gitkeep_missing_fails' -Body {
-        $fixture = New-Fixture
-        Remove-Item -LiteralPath (Join-Path $fixture 'template\.agent\reference\.gitkeep') -Force
-        $result = Invoke-Checker -Fixture $fixture
-        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'reference_work_contract_invalid') { throw 'missing reference directory marker was not reported' }
-    }
-
-    Assert-Test -Name 'work_gitkeep_missing_fails' -Body {
-        $fixture = New-Fixture
-        Remove-Item -LiteralPath (Join-Path $fixture 'template\.agent\work\.gitkeep') -Force
-        $result = Invoke-Checker -Fixture $fixture
-        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'reference_work_contract_invalid') { throw 'missing work directory marker was not reported' }
-    }
-
-    Assert-Test -Name 'active_references_default_missing_fails' -Body {
-        $fixture = New-Fixture
-        $statePath = Join-Path $fixture 'template\.agent\STATE.md'
-        $stateText = [System.IO.File]::ReadAllText($statePath, [System.Text.Encoding]::UTF8)
-        $stateText = [regex]::Replace($stateText, '(?ms)^## Active References\r?\n\r?\n`none`\r?\n\r?\n', '')
-        [System.IO.File]::WriteAllText($statePath, $stateText, [System.Text.Encoding]::UTF8)
-        $result = Invoke-Checker -Fixture $fixture
-        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'reference_work_contract_invalid') { throw 'missing inactive Active References was not reported' }
-    }
-
-    Assert-Test -Name 'work_directory_default_missing_fails' -Body {
-        $fixture = New-Fixture
-        $statePath = Join-Path $fixture 'template\.agent\STATE.md'
-        $stateText = [System.IO.File]::ReadAllText($statePath, [System.Text.Encoding]::UTF8)
-        $stateText = [regex]::Replace($stateText, '(?ms)^## Work Directory\r?\n\r?\n`none`\r?\n\r?\n', '')
-        [System.IO.File]::WriteAllText($statePath, $stateText, [System.Text.Encoding]::UTF8)
-        $result = Invoke-Checker -Fixture $fixture
-        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'reference_work_contract_invalid') { throw 'missing inactive Work Directory was not reported' }
-    }
-
-    Assert-Test -Name 'deliver_work_cleanup_missing_fails' -Body {
-        $fixture = New-Fixture
-        $protocolPath = Join-Path $fixture 'template\.agent\STATE_MACHINE.md'
-        $protocolText = [System.IO.File]::ReadAllText($protocolPath, [System.Text.Encoding]::UTF8)
-        $protocolText = $protocolText.Replace('Before DELIVER completes, classify and clean all Work Directory content.', '')
-        [System.IO.File]::WriteAllText($protocolPath, $protocolText, [System.Text.Encoding]::UTF8)
-        $result = Invoke-Checker -Fixture $fixture
-        if ($result.ExitCode -eq 0 -or ($result.Output -join "`n") -notmatch 'reference_work_contract_invalid') { throw 'missing DELIVER work cleanup rule was not reported' }
-    }
-
-    Assert-Test -Name 'explain_includes_error_detail' -Body {
-        $fixture = New-Fixture
-        Add-Content -LiteralPath (Join-Path $fixture 'template\AGENTS.md') -Value 'AskUserQuestion' -Encoding UTF8
-        $result = Invoke-Checker -Fixture $fixture -Explain
-        $text = $result.Output -join "`n"
-        if ($result.ExitCode -eq 0 -or $text -notmatch 'claude_only_asset' -or $text -notmatch 'AskUserQuestion') { throw 'Explain output did not include error detail' }
-    }
-
-    Assert-Test -Name 'json_is_parseable_and_stable' -Body {
+    Assert-Test -Name 'json_is_parseable_stable_and_read_only' -Body {
         $fixture = New-Fixture
         $first = Invoke-Checker -Fixture $fixture -Json
         $second = Invoke-Checker -Fixture $fixture -Json
@@ -191,8 +121,8 @@ try {
         $secondText = $second.Output -join "`n"
         if ($first.ExitCode -ne 0 -or $second.ExitCode -ne 0) { throw 'JSON check did not pass' }
         $parsed = $firstText | ConvertFrom-Json
-        if (-not $parsed.passed -or $parsed.checks -ne 9) { throw 'JSON result was incomplete' }
-        if ($firstText -cne $secondText) { throw 'JSON result was not stable' }
+        if (-not $parsed.passed -or $parsed.checks -ne 6) { throw 'JSON result was incomplete' }
+        if ($firstText -cne $secondText) { throw 'JSON output was not stable' }
     }
 }
 finally {
@@ -207,7 +137,5 @@ if ($failures.Count -eq 0) {
 }
 
 Write-Output ('FAIL: ' + $failures.Count)
-foreach ($failure in $failures) {
-    Write-Output ('- ' + $failure)
-}
+foreach ($failure in $failures) { Write-Output ('- ' + $failure) }
 exit 1

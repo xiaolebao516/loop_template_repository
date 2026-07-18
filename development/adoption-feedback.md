@@ -2,52 +2,51 @@
 
 This file belongs only to the template repository's research and development process. It is not deployed to target projects and must not record target-project business requirements, code details, experiment data, or sensitive information.
 
-Treat every finding as a candidate. Promote a finding to `template/` or a future Skill only after validation and explicit approval. Temporary findings may be closed, archived, or deleted when they no longer provide value.
+Treat every finding as a candidate. Promote it to the runtime or tooling only after validation and explicit approval. Temporary findings may be closed, archived, or deleted.
 
 ## Active Adoption
 
-- A replacement migration succeeded in the first mature Windows Qt project; one Loop control plane replaced the legacy Agent control files.
-- The inactive bootstrap passed in the real deployment. Source Commit, Template Tree Hash, and clean-worktree gates correctly stopped deployment from an outdated template source.
-- The first real Standard Loop, DOC-001, completed. Its project-governance work used the reference/work separation introduced by this MVP update.
-- DOC-001 was interrupted by account usage limits and later closed successfully. This does not by itself prove cross-session recovery from repository state alone.
+- The first mature Windows Qt replacement migration succeeded, and the first real complex task completed under one Loop control plane.
+- The earlier seven-file runtime provided useful evidence but proved heavier than necessary in real use. This MVP subtraction is an evidence-based convergence, not a characterization of the previous version as incorrect.
+- The runtime now preserves the demonstrated core value with three files: explicit Goal / Boundaries / SOP, recoverable current state, learning capture, minimal history, failure classification, engineering upgrades, and deterministic Build / Test / Verify commands.
 
 ## Observed Friction
 
-- Tool-level replacement of high-risk files may require a second human authorization after the risk is explained.
+- STATE_MACHINE and MODEL_POLICY were Markdown-only protocols not consumed by enforcement tooling, so their durable rules can be read more cheaply from AGENTS.
+- Separate LOG, fixed empty reference/work directories, and preinstalled workflow Skills increased navigation and maintenance cost before repeated use justified them.
 
 ## Template Gaps
 
-- None active after the inactive bootstrap and reference/work MVP contracts were defined. Remaining evidence needs are tracked below.
+- No structural gap is promoted during this subtraction. New fixed runtime files require evidence from repeated real use.
 
 ## Deployment Prompt Gaps
 
-- None active. Replacement migration classification and source-provenance gates were validated in the first mature-project adoption.
+- Initialization must establish or reuse deterministic project commands after installation; copying generic placeholders is not sufficient initialization.
 
 ## Candidate Changes
 
-- Human-document audit and layering may become a Skill candidate if it recurs with clear net benefit.
-- Weekly or project-report generation may become a separate Skill candidate under the same evidence threshold.
+- Create reference or work only when a project has actual material for them.
+- Extract a Skill only after a workflow repeats and demonstrates net value.
+- Keep human-document governance and reporting as project adaptations or future evidence-backed Skills.
 
 ## Validation Needed
 
-- **Independent Lite:** Does not read STATE_MACHINE, create work, or modify LOOP / STATE / LOG; reads only an exact reference file when needed.
-- **True cross-session Standard recovery:** A new session resumes only from LOOP, STATE, exact reference files, and necessary work, without old conversation context.
-- **Multiple real Loops:** Confirm the minimal LOG remains sufficient and the boundary between a completed instance and the next initialization remains clear.
-- **Approval paths:** Validate combined approval, partial approval, and recovery after awaiting-approval.
-- **Cross-project use:** Validate reference/work in a different project type before adding any further default structure.
-- **Skill candidates:** Reconsider human-document audit/layering and weekly/project reporting only after repeated evidence of net benefit.
+- Run the one-line three-file install in another clean real project.
+- Confirm initialization reliably discovers or creates deterministic Build / Test / Verify entry points across different project types.
+- Confirm interrupted complex work recovers from LOOP and STATE without a fixed state machine.
+- After multiple tasks, confirm STATE History remains compact and Learnings shrink when engineering constraints absorb them.
+- Confirm on-demand reference, work, and Skills emerge only when their real value exceeds their context and maintenance cost.
 
 ## Decisions
 
-- Inactive is lifecycle metadata, not an eleventh Stage.
-- Deployment activity never enters target-project LOOP, STATE, or LOG.
-- Replacement migration classifies and migrates legacy Agent control files instead of retaining a compatibility control plane.
-- Reference and work are general Loop information layers: reference holds task-selected durable Agent material, while work holds optional temporary complex-Loop material.
-- Human-document directories, weekly reports, and legacy-document governance remain project adaptations or future Skill candidates, not generic template defaults.
+- The fixed deployed runtime is `AGENTS.md`, `.agent/LOOP.md`, and `.agent/STATE.md` only.
+- State-machine, model-selection, failure, verification, learning, and delivery guidance is consolidated into AGENTS without preserving ten-stage or atomic-action terminology.
+- LOG is merged into STATE History.
+- reference and work change from preinstalled empty directories to on-demand project artifacts.
+- workflow Skills change from preinstalled protocols to evidence-backed extractions after repetition.
+- Initialization and deployment are not business tasks and do not create LOOP or History entries.
 
 ## Closed Findings
 
-- **dual_control_plane / legacy_control_files_misclassified / state_weakened_for_legacy_compatibility:** Closed by the successful replacement migration and single Loop control plane.
-- **deployment_logged_in_target:** Closed by keeping deployment history outside target LOOP / STATE / LOG.
-- **source_provenance_missing:** Closed by validated Source Commit, Template Tree Hash, and clean-worktree gates.
-- **bootstrap_state_undefined / bootstrap_state_validation:** Closed by the deployed inactive lifecycle protocol.
+- The dual-control-plane, legacy-file classification, source-provenance, and inactive-bootstrap findings remain closed by the successful replacement deployment and provenance gates.
+- The fixed reference/work and preinstalled workflow structure is closed by this three-file runtime convergence.
